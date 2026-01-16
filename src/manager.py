@@ -4,6 +4,8 @@ import json
 import shutil
 import glob
 import wave
+import numpy as np
+from scipy.io import wavfile
 from pathlib import Path
 from typing import List, Optional, Dict
 
@@ -19,11 +21,34 @@ class VoiceManager:
         count = len(list(audio_dir.glob("*.wav")))
         return str(audio_dir / f"recording_{count + 1}.wav")
         
+    def _trim_silence(self, audio: np.ndarray, threshold: float = 0.01) -> np.ndarray:
+        """Trim silence from start and end of audio array."""
+        magnitude = np.abs(audio)
+        if np.max(magnitude) < threshold:
+            return audio
+            
+        # Find start and end points
+        is_speech = magnitude > (np.max(magnitude) * threshold)
+        indices = np.where(is_speech)[0]
+        
+        if len(indices) == 0:
+            return audio
+            
+        start = indices[0]
+        end = indices[-1]
+        
+        # Add a small buffer (0.1s at 22050Hz is ~2200 samples)
+        buffer = 2000
+        start = max(0, start - buffer)
+        end = min(len(audio), end + buffer)
+        
+        return audio[start:end]
+
     def process_audio(self, voice_name: str) -> bool:
         """
         Refinement Logic:
-        Merge all .wav files in the audio directory into a single 'combined.wav'
-        in the processed directory. This provides a richer reference for XTTS.
+        Merge all .wav files in the audio directory into a single 'combined.wav'.
+        Trims silence from each clip before merging to avoid "glitchy" reference.
         """
         voice_id = self._sanitize_name(voice_name)
         voice_dir = self.base_dir / voice_id
@@ -37,18 +62,31 @@ class VoiceManager:
         outfile = processed_dir / "combined.wav"
         
         try:
-            data = []
-            for wav_path in wav_files:
-                w = wave.open(str(wav_path), 'rb')
-                data.append( [w.getparams(), w.readframes(w.getnframes())] )
-                w.close()
+            combined_audio = []
+            sample_rate = 0
             
-            output = wave.open(str(outfile), 'wb')
-            # Use params from the first file (assuming all are recorded same way)
-            output.setparams(data[0][0])
-            for i in range(len(data)):
-                output.writeframes(data[i][1])
-            output.close()
+            for wav_path in wav_files:
+                sr, audio = wavfile.read(str(wav_path))
+                sample_rate = sr
+                
+                # Normalize to float usually helpful, but keeping int16 is fine if consistent
+                # Trim silence
+                trimmed = self._trim_silence(audio)
+                combined_audio.append(trimmed)
+                
+                # Add a tiny bit of silence between clips (0.2s)
+                silence_len = int(sr * 0.2)
+                combined_audio.append(np.zeros(silence_len, dtype=audio.dtype))
+            
+            if not combined_audio:
+                return False
+                
+            # Concatenate
+            final_audio = np.concatenate(combined_audio)
+            
+            # Write
+            wavfile.write(outfile, sample_rate, final_audio)
+            
             print(f"✓ Refinement complete: Merged {len(wav_files)} samples into {outfile}")
             return True
         except Exception as e:

@@ -21,7 +21,7 @@ This project demonstrates voice cloning capabilities using Coqui TTS on macOS (M
 source venv/bin/activate
 
 # Install dependencies
-pip install TTS sounddevice scipy numpy
+pip install "torch==2.4.0" "torchaudio==2.4.0" "transformers==4.33.0" TTS sounddevice scipy numpy
 ```
 
 ## Voice Management System (NEW)
