@@ -20,8 +20,20 @@ This project demonstrates voice cloning capabilities using Coqui TTS on macOS (M
 # Activate virtual environment
 source venv/bin/activate
 
-# Install dependencies (already done)
-pip install TTS
+# Install dependencies
+pip install TTS sounddevice scipy numpy
+```
+
+## Voice Management System (NEW)
+**[--> Go to Voice Manager Guide](VOICE_MANAGER_README.md)**
+
+We have upgraded the project with a full CLI system to manage multiple voices, record audio, and refine clones.
+
+```bash
+# Quick Example
+python -m src.cli new "MyClone"
+python -m src.cli record "MyClone"
+python -m src.cli speak "MyClone" "Hello world"
 ```
 
 ## Project Structure
@@ -29,9 +41,11 @@ pip install TTS
 ```
 coqui_voice_cloning_spike/
 ├── venv/                          # Virtual environment
-├── voice_cloning_demo.py          # Main demo script
-├── output/                        # Generated audio files
-└── reference_voice.wav            # (Optional) Your voice sample for cloning
+├── src/                           # Source code (manager, synthesizer, recorder)
+├── voices/                        # Database of voice profiles
+├── voice_cloning_demo.py          # Original demo script
+├── VOICE_MANAGER_README.md        # Guide for new system
+└── output/                        # Generated output
 ```
 
 ## Quick Start

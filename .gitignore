@@ -26,3 +26,6 @@ output/
 
 # Reference audio (optional - uncomment if you don't want to commit reference files)
 # reference_voice.wav
+
+# Voice Profiles & Data
+voices/
