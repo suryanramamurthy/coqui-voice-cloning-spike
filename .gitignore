@@ -1,0 +1,28 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Output files
+output/
+*.wav
+*.mp3
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TTS cache
+.local/
+
+# Reference audio (optional - uncomment if you don't want to commit reference files)
+# reference_voice.wav
